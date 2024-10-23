@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sistema de Agendamento de Consultas</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.print.min.css" media="print" />
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/pt-br.js"></script>
+        <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            margin: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab button {
+            background-color: #007bff;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #fff;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab button:hover {
+            background-color: #0056b3;
+        }
+
+        .tab button.active {
+            background-color: #0056b3;
+        }
+
+        section {
+            display: none;
+            margin: 20px;
+        }
+
+        h2 {
+            color: #007bff;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #agenda {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #agenda p {
+            margin: 0;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #agendaContent {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .dia {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Sistema de Agendamento de Consultas</h1>
+</header>
+
+<div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'agendar')">Agendar Consulta</button>
+    <button class="tablinks" onclick="openTab(event, 'agenda')">Ver Agenda</button>
+    <button class="tablinks" onclick="openTab(event, 'calendario')">Calendário</button>
+</div>
+
+<!-- Seção Agendar Consulta -->
+<section id="agendar">
+    <h2>Agendar Consulta</h2>
+    <form id="formularioConsulta">
+        <label for="nomePaciente">Nome do Paciente:</label>
+        <input type="text" id="nomePaciente" placeholder="Digite o nome do paciente" required>
+
+        <label for="cpfPaciente">CPF do Paciente:</label>
+        <input type="text" id="cpfPaciente" placeholder="000.000.000-00" required>
+
+        <label for="telefonePaciente">Telefone do Paciente:</label>
+        <input type="text" id="telefonePaciente" placeholder="(XX) XXXXX-XXXX" required>
+
+        <label for="medico">Médico:</label>
+        <input type="text" id="medico" placeholder="Dr.(a) Nome do Médico(a)" required>
+
+        <label for="especialidade">Especialidade:</label>
+        <input type="text" id="especialidade" placeholder="Digite a especialidade" required>
+
+        <label for="dataConsulta">Data da Consulta:</label>
+        <input type="date" id="dataConsulta" required>
+
+        <label for="horaInicio">Horário de Início:</label>
+        <input type="time" id="horaInicio" required>
+
+        <label for="horaFim">Horário de Fim:</label>
+        <input type="time" id="horaFim" required>
+
+        <button type="button" onclick="agendarConsulta()">Agendar Consulta</button>
+    </form>
+</section>
+
+<!-- Seção Agenda -->
+<section id="agenda">
+    <h2>Agenda</h2>
+    <div id="agendaContent">
+        <!-- Conteúdo da agenda será adicionado dinamicamente aqui -->
+    </div>
+</section>
+
+<!-- Seção Calendário -->
+<section id="calendario">
+    <h2>Calendário</h2>
+    <div id="calendarioContent"></div>
+</section>
+
+<!-- Scripts JS -->
+<script>
+    var consultasAgendadas = [];
+
+    function criarEventosNoCalendario() {
+        $('#calendarioContent').fullCalendar('removeEvents');
+        $('#calendarioContent').fullCalendar('addEventSource', consultasAgendadas);
+        $('#calendarioContent').fullCalendar('rerenderEvents');
+    }
+
+    function agendarConsulta() {
+        var nomePaciente = document.getElementById("nomePaciente").value;
+        var cpfPaciente = document.getElementById("cpfPaciente").value;
+        var telefonePaciente = document.getElementById("telefonePaciente").value;
+        var medico = document.getElementById("medico").value;
+        var especialidade = document.getElementById("especialidade").value;
+        var dataConsulta = document.getElementById("dataConsulta").value;
+        var horaInicio = document.getElementById("horaInicio").value;
+        var horaFim = document.getElementById("horaFim").value;
+
+
+         // Remover caracteres não numéricos do telefone
+        telefonePaciente = telefonePaciente.replace(/\D/g, '');
+
+        // Adicionar formatação ao telefone
+        telefonePaciente = telefonePaciente.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+        
+        // Remover caracteres não numéricos do CPF
+        cpfPaciente = cpfPaciente.replace(/\D/g, '');
+
+        // Adicionar formatação ao CPF
+        cpfPaciente = cpfPaciente.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+
+        if (!validarCPF(cpfPaciente)) {
+        alert("CPF inválido. Por favor, insira um CPF válido.");
+        return;
+}
+
+        if (!nomePaciente || !cpfPaciente || !telefonePaciente || !medico || !dataConsulta || !horaInicio || !horaFim) {
+            alert("Por favor, preencha todos os campos.");
+            return;
+        }
+
+        var consulta = {
+            title: nomePaciente,
+            start: dataConsulta + 'T' + horaInicio,
+            end: dataConsulta + 'T' + horaFim,
+            nomePaciente: nomePaciente,
+            cpfPaciente: cpfPaciente,
+            telefonePaciente: telefonePaciente,
+            medico: medico,
+            especialidade: especialidade, 
+            dataConsulta: dataConsulta,
+            horaInicio: horaInicio,
+            horaFim: horaFim
+        };
+
+        consultasAgendadas.push(consulta);
+        consultasAgendadas.sort(compararDatas);
+
+        exibirAgenda();
+        criarEventosNoCalendario();
+
+        document.getElementById("formularioConsulta").reset();
+        openTab(event, 'agenda');
+
+        document.getElementById("cpfPaciente").addEventListener('input', function (event) {
+        var input = event.target;
+        var value = input.value.replace(/\D/g, ''); // Remover caracteres não numéricos
+        if (value.length > 11) {
+        value = value.slice(0, 11); // Limitar o comprimento do CPF
+    }
+    input.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+});
+
+document.getElementById("telefonePaciente").addEventListener('input', function (event) {
+    var input = event.target;
+    var value = input.value.replace(/\D/g, ''); // Remover caracteres não numéricos
+    if (value.length > 11) {
+        value = value.slice(0, 11); // Limitar o comprimento do telefone
+    }
+    input.value = value.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+});
+    }
+
+    // Função para validar o CPF
+function validarCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    if (cpf.length !== 11) {
+        return false;
+    }
+
+    var dv = cpf.substring(9, 11);
+    var baseCpf = cpf.substring(0, 9);
+
+    var soma = 0;
+    for (var i = 0; i < 9; i++) {
+        soma += parseInt(baseCpf.charAt(i)) * (10 - i);
+    }
+
+    var resto = 11 - (soma % 11);
+    resto = (resto === 10 || resto === 11) ? 0 : resto;
+
+    return resto === parseInt(dv.charAt(0));
+}
+
+    function compararDatas(a, b) {
+        return new Date(a.dataConsulta + 'T' + a.horaInicio) - new Date(b.dataConsulta + 'T' + b.horaInicio);
+    }
+
+    function exibirAgenda() {
+        var agendaContent = document.getElementById("agendaContent");
+        agendaContent.innerHTML = "";
+
+        consultasAgendadas.forEach(function (consulta, index) {
+            agendaContent.innerHTML += `
+                <div class="dia">
+                    <p>${consulta.dataConsulta}</p>
+                    <p>${consulta.horaInicio} - ${consulta.horaFim}</p>
+                    <p>Paciente: ${consulta.nomePaciente}</p>
+                    <p>Médico: ${consulta.medico}</p>
+                    <p>Especialidade: ${consulta.especialidade}</p> 
+                    <p>
+                        <button onclick="editarConsulta(${index})">Editar</button>
+                        <button onclick="excluirConsulta(${index})">Excluir</button>
+                    </p>
+                </div>`;
+        });
+    }
+
+    function atualizarCalendario() {
+        $('#calendarioContent').fullCalendar('refetchEvents');
+    }
+
+    function editarConsulta(index) {
+        var consultaEditada = consultasAgendadas[index];
+
+        document.getElementById("nomePaciente").value = consultaEditada.nomePaciente;
+        document.getElementById("cpfPaciente").value = consultaEditada.cpfPaciente;
+        document.getElementById("telefonePaciente").value = consultaEditada.telefonePaciente;
+        document.getElementById("medico").value = consultaEditada.medico;
+        document.getElementById("dataConsulta").value = consultaEditada.dataConsulta;
+        document.getElementById("horaInicio").value = consultaEditada.horaInicio;
+        document.getElementById("horaFim").value = consultaEditada.horaFim;
+
+        consultasAgendadas.splice(index, 1);
+
+        exibirAgenda();
+        openTab(event, 'agendar');
+    }
+
+    function excluirConsulta(index) {
+        consultasAgendadas.splice(index, 1);
+
+        exibirAgenda();
+        criarEventosNoCalendario()
+        openTab(event, 'agendar');
+    }
+
+    function openTab(evt, tabName) {
+        var i, section, tablinks;
+        section = document.getElementsByTagName("section");
+        for (i = 0; i < section.length; i++) {
+            section[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+
+        if (tabName === 'calendario') {
+            initCalendario();
+        }
+    }
+
+    function initCalendario() {
+        $('#calendarioContent').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            locale: 'pt-br',
+            events: consultasAgendadas,
+            eventClick: function (calEvent, jsEvent, view) {
+                openTab(event, 'agenda');
+                var consulta = calEvent;
+                alert(`
+                    Paciente: ${consulta.nomePaciente}
+                    CPF: ${consulta.cpfPaciente}
+                    Telefone: ${consulta.telefonePaciente}
+                    Médico: ${consulta.medico}
+                    Data: ${consulta.dataConsulta}
+                    Hora Início: ${consulta.horaInicio}
+                    Hora Fim: ${consulta.horaFim}
+                `);
+            }
+        });
+    }
+
+    document.body.onload = function () {
+        criarEventosNoCalendario();
+        initCalendario();
+    };
+</script>
+
+</body>
+</html>
